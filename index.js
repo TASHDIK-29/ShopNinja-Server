@@ -36,6 +36,7 @@ async function run() {
         await client.connect();
 
         const usersCollection = client.db("ShopNinja").collection("user");
+        const parcelsCollection = client.db("ShopNinja").collection("parcel");
 
         // JWT api
         app.post('/jwt', async (req, res) => {
@@ -50,7 +51,7 @@ async function run() {
 
         // middleware
         const verifyToken = (req, res, next) => {
-            console.log('inside verify', req.headers.authorization);
+            // console.log('inside verify', req.headers.authorization);
             if (!req.headers.authorization) {
                 return res.status(401).send({ message: 'Unauthorized access!' })
             }
@@ -97,7 +98,14 @@ async function run() {
         })
 
 
+        // Save Bookings at DB
+        app.post('/parcels',verifyToken, async(req, res) =>{
+            const parcel = req.body;
+            // console.log(parcel);
 
+            const result = await parcelsCollection.insertOne(parcel);
+            res.send(result);
+        })
 
 
 
