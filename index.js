@@ -149,7 +149,26 @@ async function run() {
             res.send(result);
         })
 
+        app.put('/parcels/:id', verifyToken, async(req, res) =>{
+            const id = req.params.id;
+            const data = req.body;
+            // console.log(data);
+            // console.log(id);
 
+            const filter = { _id: new ObjectId(id) };
+
+            const updatedDoc = {
+                $set: {
+                    deliveryManId: data.deliveryManId,
+                    approxDeliveryDate: data.approxDeliveryDate,
+                    status: 'On The Way'
+                }
+            }
+
+            const result = await parcelsCollection.updateOne(filter, updatedDoc, { upsert: true });
+
+            res.send(result);
+        })
 
         // Get data for single User
         app.get('/user/parcel/:email', async (req, res) => {
@@ -162,7 +181,12 @@ async function run() {
         })
 
 
+        // Get all Delivery Man
+        app.get('/deliveryMan', async(req, res) =>{
+            const result = await usersCollection.find({role: 'deliveryMan'}).toArray();
 
+            res.send(result);
+        })
 
 
 
