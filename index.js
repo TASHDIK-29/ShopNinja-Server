@@ -98,6 +98,15 @@ async function run() {
         })
 
 
+        // get single USER by Email
+        app.get('/user/:email', async(req, res) =>{
+            const email = req.params.email;
+            const query = {email};
+            const result = await usersCollection.findOne(query);
+            res.send(result);
+        })
+
+
         // Save Bookings at DB
         app.post('/parcels',verifyToken, async(req, res) =>{
             const parcel = req.body;
