@@ -109,6 +109,16 @@ async function run() {
 
 
 
+        // Get data for single User
+        app.get('/user/parcel/:email', async(req, res) =>{
+            const email = req.params.email;
+            const query = {email: email};
+
+            const result = await parcelsCollection.find().toArray();
+
+            res.send(result);
+        })
+
 
 
 
