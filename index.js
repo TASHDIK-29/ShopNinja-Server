@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 5000;
@@ -97,18 +97,51 @@ async function run() {
             res.send(result);
         })
 
+        // Get all users by Admin
+        app.get('/users',verifyToken, async(req, res) =>{
+            const result = await usersCollection.find().toArray();
+
+            res.send(result);
+        })
+
+        // Get all Parcels by Admin
+        app.get('/parcels',verifyToken, async(req, res) =>{
+            const result = await parcelsCollection.find().toArray();
+
+            res.send(result);
+        })
+
+
+        app.put('/users/image/:id', verifyToken, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+
+            const newImage = req.body;
+            console.log(newImage);
+
+            const updatedDoc = {
+                $set: {
+                    image: newImage.imageURL
+                }
+            }
+
+            const result = await usersCollection.updateOne(filter, updatedDoc);
+
+            res.send(result);
+        })
+
 
         // get single USER by Email
-        app.get('/user/:email', async(req, res) =>{
+        app.get('/user/:email', async (req, res) => {
             const email = req.params.email;
-            const query = {email};
+            const query = { email };
             const result = await usersCollection.findOne(query);
             res.send(result);
         })
 
 
         // Save Bookings at DB
-        app.post('/parcels',verifyToken, async(req, res) =>{
+        app.post('/parcels', verifyToken, async (req, res) => {
             const parcel = req.body;
             // console.log(parcel);
 
@@ -119,9 +152,9 @@ async function run() {
 
 
         // Get data for single User
-        app.get('/user/parcel/:email', async(req, res) =>{
+        app.get('/user/parcel/:email', async (req, res) => {
             const email = req.params.email;
-            const query = {email: email};
+            const query = { email: email };
 
             const result = await parcelsCollection.find().toArray();
 
