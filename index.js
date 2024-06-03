@@ -98,14 +98,14 @@ async function run() {
         })
 
         // Get all users by Admin
-        app.get('/users',verifyToken, async(req, res) =>{
-            const result = await usersCollection.find({role : 'user'}).toArray();
+        app.get('/users', verifyToken, async (req, res) => {
+            const result = await usersCollection.find({ role: 'user' }).toArray();
 
             res.send(result);
         })
 
         // Get all Parcels by Admin
-        app.get('/parcels',verifyToken, async(req, res) =>{
+        app.get('/parcels', verifyToken, async (req, res) => {
             const result = await parcelsCollection.find().toArray();
 
             res.send(result);
@@ -149,7 +149,7 @@ async function run() {
             res.send(result);
         })
 
-        app.put('/parcels/:id', verifyToken, async(req, res) =>{
+        app.put('/parcels/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const data = req.body;
             // console.log(data);
@@ -182,9 +182,29 @@ async function run() {
 
 
         // Get all Delivery Man
-        app.get('/deliveryMan', async(req, res) =>{
-            const result = await usersCollection.find({role: 'deliveryMan'}).toArray();
+        app.get('/deliveryMan', async (req, res) => {
+            const result = await usersCollection.find({ role: 'deliveryMan' }).toArray();
 
+            res.send(result);
+        })
+
+
+        // Get Delivery List for Individual
+        app.get('/deliveryList/:email', async (req, res) => {
+            // first: find out the specific deliveryman
+            const email = req.params.email;
+            console.log('from Delivery list : ',email);
+
+            const query1 = { email: email };
+            const deliveryMan = await usersCollection.findOne(query1);
+            const deliveryManIdString = deliveryMan._id.toString();
+            console.log('from Delivery list : ',deliveryManIdString);
+
+            // second: find all assigned order to him from parcelsCollection
+            const query2 = {deliveryManId : deliveryManIdString}
+
+            const result = await parcelsCollection.find(query2).toArray();
+            console.log('from Delivery list : ',result);
             res.send(result);
         })
 
