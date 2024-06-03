@@ -99,7 +99,7 @@ async function run() {
 
         // Get all users by Admin
         app.get('/users',verifyToken, async(req, res) =>{
-            const result = await usersCollection.find().toArray();
+            const result = await usersCollection.find({role : 'user'}).toArray();
 
             res.send(result);
         })
