@@ -179,6 +179,7 @@ async function run() {
             res.send(result);
         })
 
+        // Approve and assign Deliveryman by Admin
         app.put('/parcels/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const data = req.body;
@@ -197,6 +198,23 @@ async function run() {
 
             const result = await parcelsCollection.updateOne(filter, updatedDoc, { upsert: true });
 
+            res.send(result);
+        })
+
+        // Canceled Booking by User and Deliveryman through Query parameter
+        app.patch('/parcel/cancel/:id', async(req, res) =>{
+            const status = req.query.status;
+            // console.log('status = ',status);
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+
+            const updatedDoc = {
+                $set: {
+                    status: status
+                }
+            }
+
+            const result = await parcelsCollection.updateOne(filter, updatedDoc);
             res.send(result);
         })
 
@@ -234,18 +252,18 @@ async function run() {
         app.get('/deliveryList/:email', async (req, res) => {
             // first: find out the specific deliveryman
             const email = req.params.email;
-            console.log('from Delivery list : ',email);
+            // console.log('from Delivery list : ',email);
 
             const query1 = { email: email };
             const deliveryMan = await usersCollection.findOne(query1);
             const deliveryManIdString = deliveryMan._id.toString();
-            console.log('from Delivery list : ',deliveryManIdString);
+            // console.log('from Delivery list : ',deliveryManIdString);
 
             // second: find all assigned order to him from parcelsCollection
             const query2 = {deliveryManId : deliveryManIdString}
 
             const result = await parcelsCollection.find(query2).toArray();
-            console.log('from Delivery list : ',result);
+            // console.log('from Delivery list : ',result);
             res.send(result);
         })
 
