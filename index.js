@@ -167,7 +167,7 @@ async function run() {
 
             const result = await usersCollection.updateOne(filter, updatedDoc, { upsert: true });
             console.log('result = ', result);
-            
+
             res.send(result);
         })
 
@@ -261,6 +261,14 @@ async function run() {
 
         // Get all data for single User
         app.get('/user/parcels/:email', async (req, res) => {
+            const status = req.query.status;
+            if (status) {
+                const query = { status: status };
+                const result = await parcelsCollection.find(query).toArray();
+
+                return res.send(result);
+            }
+
             const email = req.params.email;
             const query = { email: email };
 
