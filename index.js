@@ -219,6 +219,25 @@ async function run() {
             res.send(result);
         })
 
+
+        // Update Delivery Count
+        app.put('/deliveryCount/:email', async(req, res) =>{
+            const email = req.params.email;
+            const filter = {email: email};
+            const deliveryMan = await usersCollection.findOne(filter);
+            const totalDelivery = parseInt(deliveryMan?.totalDelivery ? deliveryMan?.totalDelivery : 0);
+
+            const updatedDoc = {
+                $set: {
+                    totalDelivery: totalDelivery + 1
+                }
+            } 
+
+            const result = await usersCollection.updateOne(filter, updatedDoc, { upsert: true });
+
+            res.send(result);
+        })
+
         // Get all data for single User
         app.get('/user/parcels/:email', async (req, res) => {
             const email = req.params.email;
@@ -297,8 +316,27 @@ async function run() {
             res.send(result);
         })
 
+        
+         // Update Review Count
+         app.put('/totalReview/:id', async(req, res) =>{
+            const rating = parseInt(req.query.rating);
+            const id = req.params.id;
+            const filter = {_id: new ObjectId(id)};
+            const deliveryMan = await usersCollection.findOne(filter);
+            const totalReview = parseInt(deliveryMan?.totalReview ? deliveryMan?.totalReview : 0);
+            const totalRating = parseInt(deliveryMan?.totalRating ? deliveryMan?.totalRating : 0);
 
+            const updatedDoc = {
+                $set: {
+                    totalReview: totalReview + 1,
+                    totalRating: totalRating + rating
+                }
+            } 
 
+            const result = await usersCollection.updateOne(filter, updatedDoc, { upsert: true });
+
+            res.send(result);
+        })
 
 
 
