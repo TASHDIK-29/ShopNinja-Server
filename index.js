@@ -149,6 +149,36 @@ async function run() {
             res.send(result);
         })
 
+        // Update Bookings
+        app.patch('/parcels/:id', verifyToken, async (req, res) => {
+            const id = req.params.id;
+            const parcel = req.body;
+            // console.log(parcel);
+            const filter = { _id: new ObjectId(id) };
+
+            const updatedDoc = {
+                $set: {
+                    userName: parcel.userName,
+                    email: parcel.email,
+                    userPhone: parcel.userPhone,
+                    parcelType: parcel.parcelType,
+                    parcelWeight: parcel.parcelWeight,
+                    deliveryDate: parcel.deliveryDate,
+                    bookingDate: parcel.bookingDate,
+                    receiverName: parcel.receiverName,
+                    receiverPhone: parcel.receiverPhone,
+                    deliveryAddress: parcel.deliveryAddress,
+                    latitude: parcel.latitude,
+                    longitude: parcel.longitude,
+                    price: parcel.price,
+                    status: parcel.status
+                }
+            }
+
+            const result = await parcelsCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+
         app.put('/parcels/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const data = req.body;
