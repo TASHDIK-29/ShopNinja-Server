@@ -37,6 +37,7 @@ async function run() {
 
         const usersCollection = client.db("ShopNinja").collection("user");
         const parcelsCollection = client.db("ShopNinja").collection("parcel");
+        const reviewsCollection = client.db("ShopNinja").collection("review");
 
         // JWT api
         app.post('/jwt', async (req, res) => {
@@ -269,7 +270,32 @@ async function run() {
 
 
 
+        // Review
+        app.post('/review', async(req, res) =>{
+            const review = req.body;
 
+            const result = await reviewsCollection.insertOne(review);
+
+            res.send(result);
+        })
+
+        app.get('/reviews/:email', async(req, res) =>{
+            // first: find out the specific deliveryman
+            const email = req.params.email;
+            // console.log('from Delivery list : ',email);
+
+            const query1 = { email: email };
+            const deliveryMan = await usersCollection.findOne(query1);
+            const deliveryManIdString = deliveryMan._id.toString();
+            // console.log('from Delivery list : ',deliveryManIdString);
+
+            // second: find all assigned order to him from parcelsCollection
+            const query2 = {deliveryManId : deliveryManIdString}
+
+            const result = await reviewsCollection.find(query2).toArray();
+            // console.log('from Delivery list : ',result);
+            res.send(result);
+        })
 
 
 
