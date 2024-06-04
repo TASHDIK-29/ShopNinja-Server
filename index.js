@@ -150,6 +150,27 @@ async function run() {
             res.send(result);
         })
 
+        // Update Parcel Count
+        app.put('/totalParcel/:email', async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const user = await usersCollection.findOne(filter);
+            const totalParcel = parseInt(user?.totalParcel ? user?.totalParcel : 0);
+
+            console.log('user = ', user);
+
+            const updatedDoc = {
+                $set: {
+                    totalParcel: totalParcel + 1
+                }
+            }
+
+            const result = await usersCollection.updateOne(filter, updatedDoc, { upsert: true });
+            console.log('result = ', result);
+            
+            res.send(result);
+        })
+
         // Update Bookings
         app.patch('/parcels/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
@@ -203,7 +224,7 @@ async function run() {
         })
 
         // Canceled Booking by User and Deliveryman through Query parameter
-        app.patch('/parcel/cancel/:id', async(req, res) =>{
+        app.patch('/parcel/cancel/:id', async (req, res) => {
             const status = req.query.status;
             // console.log('status = ',status);
             const id = req.params.id;
@@ -221,9 +242,9 @@ async function run() {
 
 
         // Update Delivery Count
-        app.put('/deliveryCount/:email', async(req, res) =>{
+        app.put('/deliveryCount/:email', async (req, res) => {
             const email = req.params.email;
-            const filter = {email: email};
+            const filter = { email: email };
             const deliveryMan = await usersCollection.findOne(filter);
             const totalDelivery = parseInt(deliveryMan?.totalDelivery ? deliveryMan?.totalDelivery : 0);
 
@@ -231,7 +252,7 @@ async function run() {
                 $set: {
                     totalDelivery: totalDelivery + 1
                 }
-            } 
+            }
 
             const result = await usersCollection.updateOne(filter, updatedDoc, { upsert: true });
 
@@ -280,7 +301,7 @@ async function run() {
             // console.log('from Delivery list : ',deliveryManIdString);
 
             // second: find all assigned order to him from parcelsCollection
-            const query2 = {deliveryManId : deliveryManIdString}
+            const query2 = { deliveryManId: deliveryManIdString }
 
             const result = await parcelsCollection.find(query2).toArray();
             // console.log('from Delivery list : ',result);
@@ -290,7 +311,7 @@ async function run() {
 
 
         // Review
-        app.post('/review', async(req, res) =>{
+        app.post('/review', async (req, res) => {
             const review = req.body;
 
             const result = await reviewsCollection.insertOne(review);
@@ -298,7 +319,7 @@ async function run() {
             res.send(result);
         })
 
-        app.get('/reviews/:email', async(req, res) =>{
+        app.get('/reviews/:email', async (req, res) => {
             // first: find out the specific deliveryman
             const email = req.params.email;
             // console.log('from Delivery list : ',email);
@@ -309,19 +330,19 @@ async function run() {
             // console.log('from Delivery list : ',deliveryManIdString);
 
             // second: find all assigned order to him from parcelsCollection
-            const query2 = {deliveryManId : deliveryManIdString}
+            const query2 = { deliveryManId: deliveryManIdString }
 
             const result = await reviewsCollection.find(query2).toArray();
             // console.log('from Delivery list : ',result);
             res.send(result);
         })
 
-        
-         // Update Review Count
-         app.put('/totalReview/:id', async(req, res) =>{
+
+        // Update Review Count
+        app.put('/totalReview/:id', async (req, res) => {
             const rating = parseInt(req.query.rating);
             const id = req.params.id;
-            const filter = {_id: new ObjectId(id)};
+            const filter = { _id: new ObjectId(id) };
             const deliveryMan = await usersCollection.findOne(filter);
             const totalReview = parseInt(deliveryMan?.totalReview ? deliveryMan?.totalReview : 0);
             const totalRating = parseInt(deliveryMan?.totalRating ? deliveryMan?.totalRating : 0);
@@ -331,7 +352,7 @@ async function run() {
                     totalReview: totalReview + 1,
                     totalRating: totalRating + rating
                 }
-            } 
+            }
 
             const result = await usersCollection.updateOne(filter, updatedDoc, { upsert: true });
 
