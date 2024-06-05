@@ -66,6 +66,50 @@ async function run() {
             })
         }
 
+        // use verifyAdmin after verifyToken
+        const verifyAdmin = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+
+            const user = await usersCollection.findOne(query);
+
+            const isAdmin = user?.role === 'admin';
+            if (!isAdmin) {
+                return res.status(403).send({ message: 'Forbidden Access!' })
+            }
+
+            next();
+        }
+
+        // use verifyUser after verifyToken
+        const verifyUser = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+
+            const user = await usersCollection.findOne(query);
+
+            const isUser = user?.role === 'user';
+            if (!isUser) {
+                return res.status(403).send({ message: 'Forbidden Access!' })
+            }
+
+            next();
+        }
+
+        // use verifyDeliveryMan after verifyToken
+        const verifyDeliveryMan = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+
+            const user = await usersCollection.findOne(query);
+
+            const isDeliveryMan = user?.role === 'deliveryMan';
+            if (!isDeliveryMan) {
+                return res.status(403).send({ message: 'Forbidden Access!' })
+            }
+
+            next();
+        }
 
         // Check User Role
         app.get('/users/role/:email', verifyToken, async (req, res) => {
@@ -99,20 +143,20 @@ async function run() {
         })
 
         // Get all users by Admin
-        app.get('/users', verifyToken, async (req, res) => {
+        app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
             const result = await usersCollection.find({ role: 'user' }).toArray();
 
             res.send(result);
         })
 
         // Get all Parcels by Admin
-        app.get('/parcels', verifyToken, async (req, res) => {
+        app.get('/parcels', verifyToken, verifyAdmin, async (req, res) => {
             const fromDate = req.query.fromDate;
             const toDate = req.query.toDate;
 
             if (fromDate && toDate) {
                 const result = await parcelsCollection.find({
-                   deliveryDate: {
+                    deliveryDate: {
                         $gte: fromDate,
                         $lte: toDate
                     }
@@ -120,7 +164,7 @@ async function run() {
 
                 return res.send(result);
             }
-            
+
             const result = await parcelsCollection.find().toArray();
 
             res.send(result);
@@ -147,8 +191,11 @@ async function run() {
 
 
         // get single USER by Email
-        app.get('/user/:email', async (req, res) => {
+        app.get('/user/:email',verifyToken,verifyUser, async (req, res) => {
             const email = req.params.email;
+            if (email !== req.decoded.email) {
+                return res.status(403).send({ message: 'Forbidden Access!' })
+            }
             const query = { email };
             const result = await usersCollection.findOne(query);
             res.send(result);
@@ -273,8 +320,14 @@ async function run() {
             res.send(result);
         })
 
-        // Get all data for single User
-        app.get('/user/parcels/:email', async (req, res) => {
+        // Get all Parcel for single User
+        app.get('/user/parcels/:email', verifyToken, verifyUser, async (req, res) => {
+            const email = req.params.email;
+            if (email !== req.decoded.email) {
+                return res.status(403).send({ message: 'Forbidden Access!' })
+            }
+
+
             const status = req.query.status;
             if (status) {
                 const query = { status: status };
@@ -283,7 +336,7 @@ async function run() {
                 return res.send(result);
             }
 
-            const email = req.params.email;
+            
             const query = { email: email };
 
             const result = await parcelsCollection.find().toArray();
@@ -293,7 +346,7 @@ async function run() {
 
 
         // Get single data for single User
-        app.get('/user/parcel/:id', async (req, res) => {
+        app.get('/user/parcel/:id',verifyToken,verifyUser, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
 
@@ -304,7 +357,7 @@ async function run() {
 
 
         // Get all Delivery Man
-        app.get('/deliveryMan', async (req, res) => {
+        app.get('/deliveryMan', verifyToken, verifyAdmin, async (req, res) => {
             const result = await usersCollection.find({ role: 'deliveryMan' }).toArray();
 
             res.send(result);
@@ -312,9 +365,12 @@ async function run() {
 
 
         // Get Delivery List for Individual
-        app.get('/deliveryList/:email', async (req, res) => {
+        app.get('/deliveryList/:email',verifyToken,verifyDeliveryMan, async (req, res) => {
             // first: find out the specific deliveryman
             const email = req.params.email;
+            if (email !== req.decoded.email) {
+                return res.status(403).send({ message: 'Forbidden Access!' })
+            }
             // console.log('from Delivery list : ',email);
 
             const query1 = { email: email };
@@ -341,9 +397,12 @@ async function run() {
             res.send(result);
         })
 
-        app.get('/reviews/:email', async (req, res) => {
+        app.get('/reviews/:email',verifyToken, verifyDeliveryMan, async (req, res) => {
             // first: find out the specific deliveryman
             const email = req.params.email;
+            if (email !== req.decoded.email) {
+                return res.status(403).send({ message: 'Forbidden Access!' })
+            }
             // console.log('from Delivery list : ',email);
 
             const query1 = { email: email };
