@@ -144,10 +144,23 @@ async function run() {
 
         // Get all users by Admin
         app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
-            const result = await usersCollection.find({ role: 'user' }).toArray();
+            const page = parseInt(req.query.page);
+            // Per page I will show 5 users data.
+            const result = await usersCollection.find({ role: 'user' })
+            .skip(page * 5)
+            .limit(5)
+            .toArray();
 
             res.send(result);
         })
+
+        // Pagination
+        app.get('/usersCount', async(req, res) =>{
+            const users = await usersCollection.find({ role: 'user' }).toArray();
+            const count = users.length;
+      
+            res.send({count});
+          })
 
         // Get all Parcels by Admin
         app.get('/parcels', verifyToken, verifyAdmin, async (req, res) => {
