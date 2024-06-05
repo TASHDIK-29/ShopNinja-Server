@@ -191,7 +191,7 @@ async function run() {
 
 
         // get single USER by Email
-        app.get('/user/:email',verifyToken,verifyUser, async (req, res) => {
+        app.get('/user/:email', verifyToken, verifyUser, async (req, res) => {
             const email = req.params.email;
             if (email !== req.decoded.email) {
                 return res.status(403).send({ message: 'Forbidden Access!' })
@@ -336,7 +336,7 @@ async function run() {
                 return res.send(result);
             }
 
-            
+
             const query = { email: email };
 
             const result = await parcelsCollection.find().toArray();
@@ -346,7 +346,7 @@ async function run() {
 
 
         // Get single data for single User
-        app.get('/user/parcel/:id',verifyToken,verifyUser, async (req, res) => {
+        app.get('/user/parcel/:id', verifyToken, verifyUser, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
 
@@ -365,7 +365,7 @@ async function run() {
 
 
         // Get Delivery List for Individual
-        app.get('/deliveryList/:email',verifyToken,verifyDeliveryMan, async (req, res) => {
+        app.get('/deliveryList/:email', verifyToken, verifyDeliveryMan, async (req, res) => {
             // first: find out the specific deliveryman
             const email = req.params.email;
             if (email !== req.decoded.email) {
@@ -397,7 +397,7 @@ async function run() {
             res.send(result);
         })
 
-        app.get('/reviews/:email',verifyToken, verifyDeliveryMan, async (req, res) => {
+        app.get('/reviews/:email', verifyToken, verifyDeliveryMan, async (req, res) => {
             // first: find out the specific deliveryman
             const email = req.params.email;
             if (email !== req.decoded.email) {
@@ -440,6 +440,45 @@ async function run() {
             res.send(result);
         })
 
+
+        // Chart
+        app.get('/barChart', async (req, res) => {
+
+            const bookings = await parcelsCollection.aggregate([
+                {
+                    $group: {
+                        _id: '$approxDeliveryDate',
+                        count: { $sum: 1 }
+                    }
+                },
+                {
+                    $sort: { _id: 1 }
+                }
+            ]).toArray();
+
+            res.send(bookings);
+        })
+
+
+        app.get('/lineChart', async (req, res) => {
+
+            const bookings = await parcelsCollection.aggregate([
+                {
+                    $group: {
+                        _id: {
+                            deliveryDate: '$deliveryDate',
+                            status: '$status'
+                        },
+                        count: { $sum: 1 }
+                    }
+                },
+                {
+                    $sort: { '_id.deliveryDate': 1 }
+                }
+            ]).toArray();
+
+            res.send(bookings);
+        })
 
 
 
