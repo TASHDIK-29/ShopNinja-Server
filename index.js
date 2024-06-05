@@ -107,6 +107,20 @@ async function run() {
 
         // Get all Parcels by Admin
         app.get('/parcels', verifyToken, async (req, res) => {
+            const fromDate = req.query.fromDate;
+            const toDate = req.query.toDate;
+
+            if (fromDate && toDate) {
+                const result = await parcelsCollection.find({
+                   deliveryDate: {
+                        $gte: fromDate,
+                        $lte: toDate
+                    }
+                }).toArray();
+
+                return res.send(result);
+            }
+            
             const result = await parcelsCollection.find().toArray();
 
             res.send(result);
