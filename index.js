@@ -314,6 +314,23 @@ async function run() {
             res.send(result);
         })
 
+        // Changed role by Admin through Query parameter
+        app.patch('/changeRole/:id', async (req, res) => {
+            const role = req.query.role;
+            // console.log('role = ',role);
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+
+            const updatedDoc = {
+                $set: {
+                    role: role
+                }
+            }
+
+            const result = await usersCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+
 
         // Update Delivery Count
         app.put('/deliveryCount/:email', async (req, res) => {
