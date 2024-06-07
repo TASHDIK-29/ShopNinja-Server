@@ -520,6 +520,22 @@ async function run() {
             res.send({parcel, user, delivered});
         })
 
+        // Top DeliveryMan
+        app.get('/topDeliveryMan', async(req, res)=>{
+            const query = req.query.query;
+            const deliveryMan = await usersCollection.find({role : 'deliveryMan'}).toArray();
+            
+            if(query === 'delivered'){
+                data = usersCollection.find({role : 'deliveryMan'}).sort({totalDelivery : -1}).limit(3);
+            }else{
+                data = usersCollection.find({role : 'deliveryMan'}).sort({totalRating : -1}).limit(3);
+            }
+
+            const result = await data.toArray();
+            
+            res.send(result);
+        })
+
 
 
         // Send a ping to confirm a successful connection
