@@ -510,7 +510,15 @@ async function run() {
             res.send(bookings);
         })
 
+        // Stat for Home Page
+        app.get('/stat', async(req, res) =>{
+            const parcel = await parcelsCollection.estimatedDocumentCount();
+            const user = await usersCollection.estimatedDocumentCount();
+            const delivery = await parcelsCollection.find({ status: 'Delivered' }).toArray();
+            const delivered = delivery.length;
 
+            res.send({parcel, user, delivered});
+        })
 
 
 
