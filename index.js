@@ -3,6 +3,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -147,20 +148,20 @@ async function run() {
             const page = parseInt(req.query.page);
             // Per page I will show 5 users data.
             const result = await usersCollection.find({ role: 'user' })
-            .skip(page * 5)
-            .limit(5)
-            .toArray();
+                .skip(page * 5)
+                .limit(5)
+                .toArray();
 
             res.send(result);
         })
 
         // Pagination
-        app.get('/usersCount', async(req, res) =>{
+        app.get('/usersCount', async (req, res) => {
             const users = await usersCollection.find({ role: 'user' }).toArray();
             const count = users.length;
-      
-            res.send({count});
-          })
+
+            res.send({ count });
+        })
 
         // Get all Parcels by Admin
         app.get('/parcels', verifyToken, verifyAdmin, async (req, res) => {
@@ -511,29 +512,48 @@ async function run() {
         })
 
         // Stat for Home Page
-        app.get('/stat', async(req, res) =>{
+        app.get('/stat', async (req, res) => {
             const parcel = await parcelsCollection.estimatedDocumentCount();
             const user = await usersCollection.estimatedDocumentCount();
             const delivery = await parcelsCollection.find({ status: 'Delivered' }).toArray();
             const delivered = delivery.length;
 
-            res.send({parcel, user, delivered});
+            res.send({ parcel, user, delivered });
         })
 
         // Top DeliveryMan
-        app.get('/topDeliveryMan', async(req, res)=>{
+        app.get('/topDeliveryMan', async (req, res) => {
             const query = req.query.query;
-            const deliveryMan = await usersCollection.find({role : 'deliveryMan'}).toArray();
-            
-            if(query === 'delivered'){
-                data = usersCollection.find({role : 'deliveryMan'}).sort({totalDelivery : -1}).limit(3);
-            }else{
-                data = usersCollection.find({role : 'deliveryMan'}).sort({totalRating : -1}).limit(3);
+            const deliveryMan = await usersCollection.find({ role: 'deliveryMan' }).toArray();
+
+            if (query === 'delivered') {
+                data = usersCollection.find({ role: 'deliveryMan' }).sort({ totalDelivery: -1 }).limit(3);
+            } else {
+                data = usersCollection.find({ role: 'deliveryMan' }).sort({ totalRating: -1 }).limit(3);
             }
 
             const result = await data.toArray();
-            
+
             res.send(result);
+        })
+
+
+        // Payment by Stripe
+        app.post('/create-payment-intent', async (req, res) => {
+            const { price } = req.body;
+            const amount = parseInt(price * 100) // poyshate hishab hoy. 
+            console.log('amount inside the intent ', amount);
+
+
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: "usd",
+                payment_method_types: ["card"] // ****doc a nai.PaymentIntent a click kore dekhte hbe.
+            });
+
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
         })
 
 
