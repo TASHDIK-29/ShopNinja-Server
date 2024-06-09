@@ -39,6 +39,7 @@ async function run() {
         const usersCollection = client.db("ShopNinja").collection("user");
         const parcelsCollection = client.db("ShopNinja").collection("parcel");
         const reviewsCollection = client.db("ShopNinja").collection("review");
+        const paymentsCollection = client.db("ShopNinja").collection("payment");
 
         // JWT api
         app.post('/jwt', async (req, res) => {
@@ -554,6 +555,58 @@ async function run() {
             res.send({
                 clientSecret: paymentIntent.client_secret,
             });
+        })
+
+        app.post('/payments', async (req, res) => {
+            const payment = req.body;
+
+            const result = await paymentsCollection.insertOne(payment);
+            res.send(result);
+        })
+
+        app.put('/payments/user/:email', async (req, res) => {
+            const { cost } = req.body;
+            const email = req.params.email;
+            // console.log('cost=', cost);
+            // console.log('email=', email);
+
+            const filter = { email: email };
+            const user = await usersCollection.findOne(filter);
+            const totalSpent = parseInt(user?.totalSpent ? user?.totalSpent : 0);
+
+            // console.log('user = ', user);
+
+            const updatedDoc = {
+                $set: {
+                    totalSpent: totalSpent + cost
+                }
+            }
+
+            const result = await usersCollection.updateOne(filter, updatedDoc, { upsert: true });
+            // console.log('result = ', result);
+            res.send(result);
+        })
+
+        app.put('/payments/parcel/:id', async (req, res) => {
+            const { cost } = req.body;
+            const id = req.params.id;
+            // console.log('cost=', cost);
+            // console.log('id=', id);
+
+            const filter = { _id: new ObjectId(id) };
+            const user = await usersCollection.findOne(filter);
+
+            // console.log('user = ', user);
+
+            const updatedDoc = {
+                $set: {
+                    paymentStatus: 'paid'
+                }
+            }
+
+            const result = await parcelsCollection.updateOne(filter, updatedDoc, { upsert: true });
+            // console.log('result = ', result);
+            res.send(result);
         })
 
 
